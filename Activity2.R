@@ -47,7 +47,7 @@ datW$siteN <- as.numeric(as.factor(datW$NAME))
 par(mfrow=c(2,2))
 
 #create histogram of average daily temps for site coded as 1 (aberdeen, wa)
-hist(datW$TAVE[datW$siteN == 1],
+h1<-hist(datW$TAVE[datW$siteN == 1],
      freq=FALSE, 
      main = "Aberdeen, WA US", #fix
      xlab = "Average daily temperature (degrees C)", 
@@ -146,5 +146,84 @@ abline(v = mean(datW$TAVE[datW$siteN == 4],na.rm=TRUE) + sd(datW$TAVE[datW$siteN
        lty = 3,
        lwd = 3)
 
+
+#From Instructions
+#Add normal distribution line for histogram 1
+x.plot <- seq(-10,30, length.out = 100)
+
+y.plot <-  dnorm(seq(-10,30, length.out = 100),
+                 mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE),
+                 sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE))
+y.scaled <- (max(h1$density)/max(y.plot)) * y.plot
+
+points(x.plot,
+       y.scaled, 
+       type = "l", 
+       col = "royalblue3",
+       lwd = 4, 
+       lty = 2)
+
+#Gives Probability of Area Below Curve (Site 1)
+pnorm(5,
+        mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE),
+        sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE))- pnorm(0,
+        mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE),
+        sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE))
+
+#Gives probability of observing temperatures above 20 degrees C
+1 - pnorm(20,
+          mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE),
+          sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE))
+
+#Get probability of observing extremely higher temperatures at site 1 
+qnorm(0.95,
+      mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE),
+      sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE))
+
+
+#Questions 6-9
+
+#Question 6
+threshold<-qnorm(0.95,
+      mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE),
+      sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE))
+
+1 - pnorm(threshold,
+          mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE)+4,
+          sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE))
+
+#Question 7: This is an example of an exponential distribution, or a gamma 
+#distribution in which an exponential distribution is a subset ofhe
+hist(datW$PRCP[datW$siteN == 1],
+         freq=FALSE, 
+         main = "Aberdeen, WA US", 
+         xlab = "Average daily precipitation", 
+         ylab="Relative frequency",
+         col="grey50",
+         border="white")
+
+#Question 8:
+#Annual precipitation for each site by year
+PRCP_SITE_YEAR <- aggregate(datW$PRCP, by=list(datW$year,datW$siteN), FUN="sum",na.rm=TRUE)
+colnames(PRCP_SITE_YEAR) <- c("DATE","LOCATION", "PRCP Annual")
+PRCP_SITE_YEAR
+
+
+
+
+hist(PRCP_SITE_YEAR[datW$PRCP],
+     freq=FALSE, 
+     main = "Aberdeen, WA US", 
+     xlab = "Average daily precipitation (degrees C)", 
+     ylab="Relative frequency",
+     col="grey50",
+     border="white")
+
+#Question 9
+#Average Precipitation for all sites comparing to average temp
+averageTemp
+averagePRCP <- aggregate(datW$PRCP, by=list(datW$NAME), FUN="mean",na.rm=TRUE)
+colnames(averagePRCP) <- c("NAME","AVE PRCP")
+averagePRCP
 
 
