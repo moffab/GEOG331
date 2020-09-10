@@ -192,6 +192,7 @@ threshold<-qnorm(0.95,
           mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE)+4,
           sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE))
 
+
 #Question 7: This is an example of an exponential distribution, or a gamma 
 #distribution in which an exponential distribution is a subset ofhe
 hist(datW$PRCP[datW$siteN == 1],
@@ -205,16 +206,16 @@ hist(datW$PRCP[datW$siteN == 1],
 #Question 8:
 #Annual precipitation for each site by year
 PRCP_SITE_YEAR <- aggregate(datW$PRCP, by=list(datW$year,datW$siteN), FUN="sum",na.rm=TRUE)
-colnames(PRCP_SITE_YEAR) <- c("DATE","LOCATION", "PRCP Annual")
+colnames(PRCP_SITE_YEAR) <- c("DATE","LOCATION", "PRCP")
 PRCP_SITE_YEAR
 
+prcp1 <- subset(PRCP_SITE_YEAR, PRCP_SITE_YEAR$LOCATION==1)
+prcp1
 
-
-
-hist(PRCP_SITE_YEAR[datW$PRCP],
+hist(prcp1[,3],
      freq=FALSE, 
      main = "Aberdeen, WA US", 
-     xlab = "Average daily precipitation (degrees C)", 
+     xlab = "Average yearly precipitation", 
      ylab="Relative frequency",
      col="grey50",
      border="white")
