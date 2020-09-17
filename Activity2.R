@@ -212,7 +212,6 @@ hist(datW$PRCP[datW$siteN == 1],
          col="grey50",
          border="white")
 
-#Question 8:
 #Annual precipitation for each site by year
 PRCP_SITE_YEAR <- aggregate(datW$PRCP, by=list(datW$year,datW$siteN), FUN="sum",na.rm=TRUE)
 colnames(PRCP_SITE_YEAR) <- c("DATE","LOCATION", "PRCP")
@@ -231,7 +230,6 @@ hist(prcp1[,3],
      col="grey50",
      border="white")
 
-#Question 9
 #Average Precipitation for all sites 
 averageTemp
 
