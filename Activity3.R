@@ -90,8 +90,6 @@ points(datW$DD[lightscale > 0], lightscale[lightscale > 0],
 
 #QUESTION 5
 
-
-
 #filters out suspect air temperature observations
 # filter all values with lightning that coincides with rainfall greater than 2mm or only rainfall over 5 mm.    
 #create a new air temp column
@@ -99,8 +97,11 @@ datW$air.tempQ2 <- ifelse(datW$precipitation  >= 2 & datW$lightning.acvitivy >0,
                           ifelse(datW$precipitation > 5, NA, datW$air.temperature))
 
 #checks to see if the total time that lightning occurs is equal between each data subset
-assert (length(lightscale) == length(datW$lightning.acvitivy), "error:unequal lengths")
-#assert(sum(lightscale>0) == sum(datW$lightning.acvitivy>0), "error: unequal sums")
+subl<-lightscale[lightscale>0]
+subl
+suba<-datW$lightning.acvitivy[datW$lightning.acvitivy>0]
+suba
+assert (length(subl) == length(suba), "error:unequal lengths")
 
 #QUESTION 6
 #filters out suspect wind speed observations
@@ -109,14 +110,74 @@ assert (length(lightscale) == length(datW$lightning.acvitivy), "error:unequal le
 datW$wind.speedQ2<- ifelse(datW$precipitation>=2 & datW$lightning.acvitivy>0, NA, 
                           ifelse(datW$precipitation>5, NA, datW$wind.speed))
 
+#check and see the number of NA values in datW$wind.speedQ2 match the number of values 
+#with the specified conditions for stormy weather
 sub1<-datW$wind.speed[(datW$precipitation>=2 & datW$lightning.acvitivy>0) | (datW$precipitation>5)]
 sub1
 assert(length(which(is.na(datW$wind.speedQ2)))==length(sub1))
 
+#check contents of each 
+sub2<-datW$DD[(datW$precipitation>=2 & datW$lightning.acvitivy>0) | (datW$precipitation>5)]
+sub2
+sub3<-datW$DD[is.na(datW$wind.speedQ2)]
+sub3
 
 
+#Question 7
 
-plot(datW$DD, datW$wind.speedQ2, pch=19, type="b", xlab = "Day of Year",
+#compare soil temperature and air temperature
+plot(datW$DD, datW$air.tempQ2, pch=19, type="b", xlab = "Day of Year",
+     ylab="Temperature")
+points(datW$DD, datW$soil.temp,
+       col= "tomato3", pch=19)
+
+#compare standardized precipitation and soil moisture
+sm<- scale(datW$soil.moisture)
+plot(datW$DD, datW$precipitation, pch=19, type="b", xlab = "Day of Year",
+     ylab="Precipitation")
+points(datW$DD[sm>=0], sm[sm>=0],
+       col= "tomato3", pch=19)
+
+
+#QUESTION 8
+
+#get average air temp, wind speed, soil moisture, and soil temp, as well as 
+#number of values that are not NA
+averageairTemp<-mean(datW$air.tempQ2, na.rm = TRUE)
+averageairTemp
+length(which(!is.na(datW$air.tempQ2)))
+averagewindSpeed<-mean(datW$wind.speedQ2, na.rm=TRUE)
+averagewindSpeed
+length(which(!is.na(datW$wind.speedQ2)))
+averagesoilMoisture<-mean(datW$soil.moisture, na.rm=TRUE)
+averagesoilMoisture
+length(which(!is.na(datW$soil.moisture)))
+averagesoilTemp<-mean(datW$soil.temp, na.rm=TRUE)
+averagesoilTemp
+length(which(!is.na(datW$soil.temp)))
+
+
+#get the total amount of precipitation over the time period
+totalprecip<-sum(datW$precipitation, na.rm=TRUE)
+
+#get the range of time period for the data as well as the number of observations
+nrow(datW)
+datW[1,]
+datW[2118,]
+
+#QUESTION 9
+#plot soil moisture
+plot(datW$DD, datW$soil.moisture, pch=19, type="b", xlab = "Day of Year",
+     ylab="Soil Moisture")
+#plot air temp
+plot(datW$DD, datW$air.tempQ2, pch=19, type="b", xlab = "Day of Year",
+     ylab="Air Temperature")
+#plot soil temp
+plot(datW$DD, datW$soil.temp, pch=19, type="b", xlab = "Day of Year",
+     ylab="Soil Temperature")
+#plot precipitation
+plot(datW$DD, datW$precipitation, pch=19, type="b", xlab = "Day of Year",
      ylab="Wind Speed")
+
 
 
