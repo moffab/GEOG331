@@ -96,7 +96,8 @@ points(datW$DD[lightscale > 0], lightscale[lightscale > 0],
 datW$air.tempQ2 <- ifelse(datW$precipitation  >= 2 & datW$lightning.acvitivy >0, NA,
                           ifelse(datW$precipitation > 5, NA, datW$air.temperature))
 
-#checks to see if the total time that lightning occurs is equal between each data subset
+#checks to see if the total time that lightning occurs is equal between each data subset 
+#and also whether the dates match up
 subl<-datW$DD[lightscale>0]
 sort(subl)
 suba<-datW$DD[datW$lightning.acvitivy>0]
@@ -118,6 +119,7 @@ datW$wind.speedQ2<- ifelse(datW$precipitation>=2 & datW$lightning.acvitivy>0, NA
 #with the specified conditions for stormy weather
 sub1<-datW$wind.speed[(datW$precipitation>=2 & datW$lightning.acvitivy>0) | (datW$precipitation>5)]
 sub1
+#check to ensure identical number of NA values and values where specified weather conditions apply
 assert(length(which(is.na(datW$wind.speedQ2)))==length(sub1))
 
 #assign to sub2 the dates where the following weather conditions apply
