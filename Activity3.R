@@ -97,11 +97,15 @@ datW$air.tempQ2 <- ifelse(datW$precipitation  >= 2 & datW$lightning.acvitivy >0,
                           ifelse(datW$precipitation > 5, NA, datW$air.temperature))
 
 #checks to see if the total time that lightning occurs is equal between each data subset
-subl<-lightscale[lightscale>0]
-subl
-suba<-datW$lightning.acvitivy[datW$lightning.acvitivy>0]
-suba
+subl<-datW$DD[lightscale>0]
+sort(subl)
+suba<-datW$DD[datW$lightning.acvitivy>0]
+sort(suba)
 assert (length(subl) == length(suba), "error:unequal lengths")
+for (n in length(subl)){
+  assert(subl[n] == suba[n], "not equal")
+}
+
 
 #QUESTION 6
 #filters out suspect wind speed observations
@@ -121,7 +125,14 @@ sub2<-datW$DD[(datW$precipitation>=2 & datW$lightning.acvitivy>0) | (datW$precip
 sub2
 sub3<-datW$DD[is.na(datW$wind.speedQ2)]
 sub3
-
+#go through for loop after sorting and see if each DD is the same NA values and values where
+#extreme weather conditions apply
+sort(sub2)
+sort(sub3)
+assert(length(sub2) == length(sub3))
+for (n in length(sub2)){
+assert(sub2[n] == sub3[n], "not equal")
+}
 
 #Question 7
 
