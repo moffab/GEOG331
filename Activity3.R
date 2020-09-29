@@ -120,13 +120,15 @@ sub1<-datW$wind.speed[(datW$precipitation>=2 & datW$lightning.acvitivy>0) | (dat
 sub1
 assert(length(which(is.na(datW$wind.speedQ2)))==length(sub1))
 
-#check contents of each 
+#assign to sub2 the dates where the following weather conditions apply
 sub2<-datW$DD[(datW$precipitation>=2 & datW$lightning.acvitivy>0) | (datW$precipitation>5)]
 sub2
+#assign to sub3 the dates where wind.speedQ2 is NA
 sub3<-datW$DD[is.na(datW$wind.speedQ2)]
 sub3
+
 #go through for loop after sorting and see if each DD is the same NA values and values where
-#extreme weather conditions apply
+#extreme weather conditions apply using the assert function on each DD 
 sort(sub2)
 sort(sub3)
 assert(length(sub2) == length(sub3))
@@ -136,7 +138,7 @@ assert(sub2[n] == sub3[n], "not equal")
 
 #Question 7
 
-#compare soil temperature and air temperature
+#compare soil temperature and air temperature in one graph
 plot(datW$DD, datW$air.tempQ2, pch=19, type="b", xlab = "Day of Year",
      ylab="Temperature")
 points(datW$DD, datW$soil.temp,
@@ -153,7 +155,7 @@ points(datW$DD[sm>=0], sm[sm>=0],
 #QUESTION 8
 
 #get average air temp, wind speed, soil moisture, and soil temp, as well as 
-#number of values that are not NA
+#number of values that are not NA for each variable 
 averageairTemp<-mean(datW$air.tempQ2, na.rm = TRUE)
 averageairTemp
 length(which(!is.na(datW$air.tempQ2)))
