@@ -138,18 +138,22 @@ for (n in length(sub2)){
 assert(sub2[n] == sub3[n], "not equal")
 }
 
+#create plot of windspeed
+plot(datW$DD, datW$wind.speedQ2, pch=19, type="b", xlab = "Day of Year",
+     ylab="Wind Speed (m.s)")
+
 #Question 7
 
 #compare soil temperature and air temperature in one graph
 plot(datW$DD, datW$air.tempQ2, pch=19, type="b", xlab = "Day of Year",
-     ylab="Temperature")
+     ylab="Temperature (Degrees C)")
 points(datW$DD, datW$soil.temp,
        col= "tomato3", pch=19)
 
 #compare standardized precipitation and soil moisture
 sm<- scale(datW$soil.moisture)
 plot(datW$DD, datW$precipitation, pch=19, type="b", xlab = "Day of Year",
-     ylab="Precipitation")
+     ylab="Standardized Precipitation and Soil Moisture")
 points(datW$DD[sm>=0], sm[sm>=0],
        col= "tomato3", pch=19)
 
@@ -172,8 +176,11 @@ averagesoilTemp
 length(which(!is.na(datW$soil.temp)))
 
 
-#get the total amount of precipitation over the time period
+#get the total amount of precipitation over the time period and count how many
+#values are not NA
 totalprecip<-sum(datW$precipitation, na.rm=TRUE)
+totalprecip
+length(which(!is.na(datW$precipitation)))
 
 #get the range of time period for the data as well as the number of observations
 nrow(datW)
@@ -181,18 +188,19 @@ datW[1,]
 datW[2118,]
 
 #QUESTION 9
+par(mfrow=c(2,2))
 #plot soil moisture
 plot(datW$DD, datW$soil.moisture, pch=19, type="b", xlab = "Day of Year",
-     ylab="Soil Moisture")
+     ylab="Soil Moisture (m cubed/m cubed)")
 #plot air temp
 plot(datW$DD, datW$air.tempQ2, pch=19, type="b", xlab = "Day of Year",
-     ylab="Air Temperature")
+     ylab="Air Temperature (Degrees C)")
 #plot soil temp
 plot(datW$DD, datW$soil.temp, pch=19, type="b", xlab = "Day of Year",
-     ylab="Soil Temperature")
+     ylab="Soil Temperature (Degrees C)")
 #plot precipitation
 plot(datW$DD, datW$precipitation, pch=19, type="b", xlab = "Day of Year",
-     ylab="Wind Speed")
+     ylab="Wind Speed (m.s)")
 
 
 
