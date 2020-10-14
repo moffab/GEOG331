@@ -131,8 +131,8 @@ sub2$yval<- -4
 #create new time variable to match datD$decYear
 sub2$newdecYear <- ifelse(leap_year(sub2$year),sub2$year + (sub2$doy/366),
                        sub2$year + (sub2$doy/365))      
-#plot discharge and add a vertical line at every point with complete precipitation measurements
-plot(datD$decYear,
+#plot discharge and add points where complete precipitation measurements are
+plot(datD$decYear, 
      datD$discharge, 
      type="l", xlab="Year",
      ylab=expression(paste("Discharge ft"^"3 ","sec"^"-1")))
