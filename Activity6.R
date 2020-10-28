@@ -66,8 +66,35 @@ ndviYear <- seq(2003,2016)
 
 #read all files into a list
 NDVIraster <- list() 
+
 for(i in 1:length(ndviYear)){
-  NDVIraster[[i]] <- raster(paste0("data\\NDVI\\NDVI_",ndviYear[i],".tif"))
-  
+  NDVIraster[[i]] <- raster(paste0("/Users/benjaminmoffa/Documents/Github/GEOG331/data2/NDVI/NDVI_",ndviYear[i],".tif"))
 }
+
+str(NDVIraster[[1]])
+NDVIraster[[1]]@crs
+
+
+#Question #3
+#try overlaying raster data and 1966 polygons (wont work)
+plot(NDVIraster[[1]])
+plot(g1966, col="black", add=TRUE)
+
+#map 2003 ndvi raster data besside 1966 glacial extent
+par(mfrow=c(1,2))
+plot(NDVIraster[[1]])
+plotRGB(rgbL, stretch="lin", axes=FALSE)
+plot(g1966, col="red", border=NA, add=TRUE)
+#End Question 3
+
+#reproject the glaciers
+#use the NDVI projection
+#spTransform(file to project, new coordinate system)
+g1966p <- spTransform(g1966,NDVIraster[[1]]@crs)
+g1998p <- spTransform(g1998,NDVIraster[[1]]@crs)
+g2005p <- spTransform(g2005,NDVIraster[[1]]@crs)
+g2015p <- spTransform(g2015,NDVIraster[[1]]@crs)
+
+plot(NDVIraster[[13]], axes=FALSE, box=FALSE)
+plot(g2015p, border="black", add=TRUE, bg=NA)
 
