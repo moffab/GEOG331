@@ -95,6 +95,161 @@ g1998p <- spTransform(g1998,NDVIraster[[1]]@crs)
 g2005p <- spTransform(g2005,NDVIraster[[1]]@crs)
 g2015p <- spTransform(g2015,NDVIraster[[1]]@crs)
 
+#Question 4: plot ndvi with 2015 glaciers
 plot(NDVIraster[[13]], axes=FALSE, box=FALSE)
-plot(g2015p, border="black", add=TRUE, bg=NA)
+plot(g2015p, border="black", add=TRUE, fill=NA)
 
+#calculate area for all polygons
+#add directly into data table for each shapefile
+g1966p@data$a1966m.sq <- area(g1966p)
+g1998p@data$a1998m.sq <- area(g1998p)
+g2005p@data$a2005m.sq <- area(g2005p)
+g2015p@data$a2015m.sq <- area(g2015p)
+
+gAllp1 <- join(g1966p@data,g1998p@data, by="GLACNAME", type="full")
+gAllp2 <- join(gAllp1,g2005p@data, by="GLACNAME", type="full")
+gAll <- join(gAllp2,g2015p@data, by="GLACNAME", type="full")
+
+#plot area of each glacier
+plot(c(1966,1998,2005,2015), 
+     c(gAll$a1966m.sq[1],gAll$a1998m.sq[1], gAll$a2005m.sq[1],gAll$a2015m.sq[1]),
+     type="b", 
+     pch=19, col=rgb(0.5,0.5,0.5,0.5), xlim= c(1965,2016),
+     ylim=c(0,2000000),
+     ylab="Area of glacier (meters squared)",
+     xlab="Year")
+
+for(i in 2:39){
+  points(c(1966,1998,2005,2015), 
+         c(gAll$a1966m.sq[i],gAll$a1998m.sq[i], gAll$a2005m.sq[i],gAll$a2015m.sq[i]),
+         type="b", 
+         pch=19, col=rgb(0.5,0.5,0.5,0.5))
+}
+
+
+#Question 5
+gAll$areachange<-0
+for(i in 1:39){
+  gAll$areachange[i] =gAll$a2015m.sq[i]-gAll$a1966m.sq[i]
+}
+
+for(i in 1:39){
+  g2015@data$areachange[i] =gAll$a2015m.sq[i]-gAll$a1966m.sq[i]
+}
+
+for(i in 1:39){
+  g2015p@data$areachange[i] =gAll$a2015m.sq[i]-gAll$a1966m.sq[i]
+}
+
+spplot(g2015p, "areachange")
+spplot(g2015, "areachange")
+#End question 5
+
+
+#plot difference in glaciers
+diffPoly <- gDifference(g1966p, g2015p, checkValidity = 2L)
+plot(diffPoly)
+
+#plot with NDVI
+plot(NDVIraster[[13]], axes=FALSE, box=FALSE)
+plot(diffPoly,col="black", border=NA,add=TRUE)
+
+#make subset with glacier that experienced greatest loss
+x1<-subset(gAll, gAll$areachange==min(gAll$areachange))
+
+#NEED TO ADD TITLE 
+#show glacial recension for glacier with most recession
+plotRGB(rgbL, ext=c(265000,271000,5420000,5430000), stretch="lin", axes=TRUE)
+plot(subset(g1966, g1966$GLACNAME=="Agassiz Glacier"), col="palegreen2", border=NA, add=TRUE)
+plot(subset(g1998, g1966$GLACNAME=="Agassiz Glacier"), col="royalblue3", add=TRUE, border=NA)
+plot(subset(g2005, g1966$GLACNAME=="Agassiz Glacier"), col="darkgoldenrod4", add=TRUE, border=NA)
+plot(subset(g2015, g1966$GLACNAME=="Agassiz Glacier"), col="tomato3", add=TRUE, border=NA)
+
+#extract NDVI values
+NDVIdiff <- list()
+meanDiff <- numeric(0)
+#loop through all NDVI years
+for(i in 1:length(ndviYear)){
+  #get raster values in the difference polygon
+  NDVIdiff[[i]] <- extract(NDVIraster[[i]],diffPoly)[[1]]
+  #calculate the mean of the NDVI values
+  meanDiff[i] <- mean(NDVIdiff[[i]], na.rm=TRUE)
+}
+maxValue(NDVIraster[[4]])
+plot(ndviYear, meanDiff, type="b",
+     xlab= "Year",
+     ylab="Average NDVI (unitless)",
+     pch=19)
+
+
+#designate that NDVIraster list is a stack
+NDVIstack <- stack(NDVIraster)
+#set up lm function to apply to every cell
+#where x is the value of a cell
+#need to first skip NA values (like lakes)
+#if NA is missing in first raster, it is missing in all
+#so we can tell R to assign an NA rather than fitting the function
+timeT <- ndviYear
+fun <- function(x) {
+  if(is.na(x[1])){
+    NA}else{
+      #fit a regression and extract a slope
+      lm(x ~ timeT)$coefficients[2] }}
+#apply the slope function to the rasters
+NDVIfit <- calc(NDVIstack,fun)
+#plot the change in NDVI
+plot(NDVIfit, axes=FALSE)
+
+glacier500m <- gBuffer(g1966p,#data to buffer
+                       byid=TRUE,#keeps original shape id 
+                       width=500)#width in coordinate system units
+
+buffRaster <- rasterize(glacier500m,#vector to convert to raster
+                        NDVIraster[[1]], #raster to match cells and extent
+                        field=glacier500m@data$GLACNAME, #field to convert to raster data
+                        background=0)#background value for missing data
+plot(buffRaster)
+
+#rasterize gralciers
+glacRaster <- rasterize(g1966p, NDVIraster[[1]], field=g1966p@data$GLACNAME, background=0)
+#subtract buffer from original glacier
+glacZones <- buffRaster - glacRaster
+plot(glacZones)
+
+meanChange <- zonal(NDVIfit, #NDVI function to summarize
+                    glacZones,#raster with zones
+                    "mean")#function to apply
+head(meanChange)
+
+
+g2015p@data$zonemean<-meanChange[-(1),]
+#Question 9
+#add zonal means to 2015 glacier polygons
+g2015p@data$zonemean<-0
+
+for(i in 1:39){
+  g2015p@data$zonemean[i] =meanChange[i+1,2]
+}
+spplot(g2015p, "zonemean")
+
+
+#Question 11
+#loop through all NDVI years
+NDVImean<-list()
+for(i in 1:length(ndviYear)){
+NDVImean[i]<-cellStats(NDVIraster[[i]], stat='mean', na.rm=TRUE)
+}
+#get average max NDVI of all years
+mean(unlist(NDVImean))
+
+#most recent glacier extent
+glacier500m2015 <- gBuffer(g2015p,#data to buffer
+                       byid=TRUE,#keeps original shape id 
+                       width=500)#width in coordinate system units
+plot(glacier500m2015)
+
+NDVIstack <- stack(NDVIraster)
+
+NDVIfit1<-calc(NDVIstack, mean)
+plot(NDVIfit1, axes=FALSE)
+plot(glacier500m2015, add=TRUE)
