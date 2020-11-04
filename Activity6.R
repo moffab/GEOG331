@@ -81,9 +81,9 @@ plot(g1966, col="black", add=TRUE)
 
 #map 2003 ndvi raster data besside 1966 glacial extent
 par(mfrow=c(1,2))
-plot(NDVIraster[[1]])
+plot(NDVIraster[[1]], axes=FALSE)
 plotRGB(rgbL, stretch="lin", axes=FALSE)
-plot(g1966, col="red", border=NA, add=TRUE)
+plot(g1966, col="red", border=NA, add=TRUE, axes=FALSE)
 #End Question 3
 
 #reproject the glaciers
@@ -105,6 +105,7 @@ g1998p@data$a1998m.sq <- area(g1998p)
 g2005p@data$a2005m.sq <- area(g2005p)
 g2015p@data$a2015m.sq <- area(g2015p)
 
+#join glacier daata
 gAllp1 <- join(g1966p@data,g1998p@data, by="GLACNAME", type="full")
 gAllp2 <- join(gAllp1,g2005p@data, by="GLACNAME", type="full")
 gAll <- join(gAllp2,g2015p@data, by="GLACNAME", type="full")
@@ -127,42 +128,36 @@ for(i in 2:39){
 
 
 #Question 5
-gAll$areachange<-0
-for(i in 1:39){
-  gAll$areachange[i] =gAll$a2015m.sq[i]-gAll$a1966m.sq[i]
-}
-
-for(i in 1:39){
-  g2015@data$areachange[i] =gAll$a2015m.sq[i]-gAll$a1966m.sq[i]
-}
-
+#calculate area change for each glacier between 1966 and 2005
 for(i in 1:39){
   g2015p@data$areachange[i] =gAll$a2015m.sq[i]-gAll$a1966m.sq[i]
 }
-
+#plot area change
 spplot(g2015p, "areachange")
-spplot(g2015, "areachange")
 #End question 5
 
 
-#plot difference in glaciers
+# Calculate plot difference in glaciers
 diffPoly <- gDifference(g1966p, g2015p, checkValidity = 2L)
 plot(diffPoly)
 
-#plot with NDVI
+#plot glacal difference with NDVI
 plot(NDVIraster[[13]], axes=FALSE, box=FALSE)
 plot(diffPoly,col="black", border=NA,add=TRUE)
 
+
+#Question 6
 #make subset with glacier that experienced greatest loss
 x1<-subset(gAll, gAll$areachange==min(gAll$areachange))
 
 #NEED TO ADD TITLE 
-#show glacial recension for glacier with most recession
-plotRGB(rgbL, ext=c(265000,271000,5420000,5430000), stretch="lin", axes=TRUE)
-plot(subset(g1966, g1966$GLACNAME=="Agassiz Glacier"), col="palegreen2", border=NA, add=TRUE)
+#show glacial recession for glacier with most recession 
+plotRGB(rgbL, ext=c(265000,271000,5420000,5430000), stretch="lin", margins=TRUE, axes=FALSE, main=c("Agassiz Glacier", "Area Change:", min(gAll$areachange), "m.sq"))
+plot(subset(g1966, g1966$GLACNAME=="Agassiz Glacier"), col="palegreen2", border=NA, add=TRUE, Main="Percent Loss")
 plot(subset(g1998, g1966$GLACNAME=="Agassiz Glacier"), col="royalblue3", add=TRUE, border=NA)
 plot(subset(g2005, g1966$GLACNAME=="Agassiz Glacier"), col="darkgoldenrod4", add=TRUE, border=NA)
 plot(subset(g2015, g1966$GLACNAME=="Agassiz Glacier"), col="tomato3", add=TRUE, border=NA)
+#End Question 6
 
 #extract NDVI values
 NDVIdiff <- list()
@@ -199,14 +194,17 @@ NDVIfit <- calc(NDVIstack,fun)
 #plot the change in NDVI
 plot(NDVIfit, axes=FALSE)
 
+#create 500m buffer zone around glacial polygon
 glacier500m <- gBuffer(g1966p,#data to buffer
                        byid=TRUE,#keeps original shape id 
                        width=500)#width in coordinate system units
 
+#rasterize glacial polygons with 500m buffer
 buffRaster <- rasterize(glacier500m,#vector to convert to raster
                         NDVIraster[[1]], #raster to match cells and extent
                         field=glacier500m@data$GLACNAME, #field to convert to raster data
                         background=0)#background value for missing data
+#plot
 plot(buffRaster)
 
 #rasterize gralciers
@@ -215,20 +213,20 @@ glacRaster <- rasterize(g1966p, NDVIraster[[1]], field=g1966p@data$GLACNAME, bac
 glacZones <- buffRaster - glacRaster
 plot(glacZones)
 
+#calculate mean change in glacZones
 meanChange <- zonal(NDVIfit, #NDVI function to summarize
                     glacZones,#raster with zones
                     "mean")#function to apply
 head(meanChange)
+mean(meanChange[,2])
 
-
-g2015p@data$zonemean<-meanChange[-(1),]
 #Question 9
 #add zonal means to 2015 glacier polygons
 g2015p@data$zonemean<-0
-
 for(i in 1:39){
   g2015p@data$zonemean[i] =meanChange[i+1,2]
 }
+#plot zonal means and glaciars 
 spplot(g2015p, "zonemean")
 
 
@@ -241,12 +239,6 @@ NDVImean[i]<-cellStats(NDVIraster[[i]], stat='mean', na.rm=TRUE)
 #get average max NDVI of all years
 mean(unlist(NDVImean))
 
-#most recent glacier extent
-#glacier500m2015 <- gBuffer(g2015p,#data to buffer
-#                       byid=TRUE)#width in coordinate system units
-#plot(glacier500m2015)
-
-
 #get range
 NDVIfit2<-calc(NDVIstack, min)
 plot(NDVIfit2)
@@ -254,30 +246,38 @@ NDVIfit3<-calc(NDVIstack, max)
 plot(NDVIfit3)
 NDVI4<-NDVIfit3-NDVIfit2
 plot(NDVI4)
-#extract NDVI range from polygons
-#NDVIextract <- extract(NDVI4,g2015p)
 
+#extract NDVI range from polygons
 averagerange <- raster::extract(NDVI4,      
                             g2015p, 
                             buffer =0,  
                             df=TRUE)
 
+#assign average range to g2015p data for each glacier
 g2015p@data$averagerange1<-0
-
 for(i in 1:39){
   g2015p@data$averagerange1[i] =averagerange[i,2]
 }
-spplot(g2015p, "averagerange1")
 
-spplot(g2015p, "zonemean")
+#color code glacial range
+g2015p@data$color[g2015p@data$averagerange1<0.25]<-"red"
+g2015p@data$color[g2015p@data$averagerange1<0.14]<-"blue"
+g2015p@data$color[g2015p@data$averagerange1<0.08]<-"black"
+
+#specify that NDVIraster is stack (repeat from earlier)
 NDVIstack <- stack(NDVIraster)
+#get plot of average NDVI 
 NDVIfit1<-calc(NDVIstack, mean)
+
+#plot average NDVI and glaciers color coded by range of their NDVI 
 plot(NDVIfit1, axes=FALSE) 
-spplot(g2015p,"averagerange1")
-plot(NDVIfit1,axes=FALSE) 
+plot(g2015p, col=g2015p@data$color, border=NA, add=TRUE)
 
-levelplot(NDVIfit1)
 
-plot(g2015p, bg="averagerange1")
+
+
+
+
+
 
 
