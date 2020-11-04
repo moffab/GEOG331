@@ -4,7 +4,6 @@ library(sp)
 library(rgdal)
 library(rgeos)
 library(plyr)
-
 #read in shapefiles
 #readOGR in rgdal does this
 g1966 <- readOGR("/Users/benjaminmoffa/Documents/Github/GEOG331/data2/GNPglaciers/GNPglaciers_1966.shp", stringsAsFactors = T)
@@ -243,13 +242,42 @@ NDVImean[i]<-cellStats(NDVIraster[[i]], stat='mean', na.rm=TRUE)
 mean(unlist(NDVImean))
 
 #most recent glacier extent
-glacier500m2015 <- gBuffer(g2015p,#data to buffer
-                       byid=TRUE,#keeps original shape id 
-                       width=500)#width in coordinate system units
-plot(glacier500m2015)
+#glacier500m2015 <- gBuffer(g2015p,#data to buffer
+#                       byid=TRUE)#width in coordinate system units
+#plot(glacier500m2015)
 
+
+#get range
+NDVIfit2<-calc(NDVIstack, min)
+plot(NDVIfit2)
+NDVIfit3<-calc(NDVIstack, max)
+plot(NDVIfit3)
+NDVI4<-NDVIfit3-NDVIfit2
+plot(NDVI4)
+#extract NDVI range from polygons
+#NDVIextract <- extract(NDVI4,g2015p)
+
+averagerange <- raster::extract(NDVI4,      
+                            g2015p, 
+                            buffer =0,  
+                            df=TRUE)
+
+g2015p@data$averagerange1<-0
+
+for(i in 1:39){
+  g2015p@data$averagerange1[i] =averagerange[i,2]
+}
+spplot(g2015p, "averagerange1")
+
+spplot(g2015p, "zonemean")
 NDVIstack <- stack(NDVIraster)
-
 NDVIfit1<-calc(NDVIstack, mean)
-plot(NDVIfit1, axes=FALSE)
-plot(glacier500m2015, add=TRUE)
+plot(NDVIfit1, axes=FALSE) 
+spplot(g2015p,"averagerange1")
+plot(NDVIfit1,axes=FALSE) 
+
+levelplot(NDVIfit1)
+
+plot(g2015p, bg="averagerange1")
+
+
