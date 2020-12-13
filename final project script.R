@@ -6,9 +6,9 @@ library(tidyr)
 library(broom)
 
 #https://www.nber.org/research/data/us-intercensal-county-population-data-age-sex-race-and-hispanic-origin
-#demDat<-read.csv("/Users/benjaminmoffa/Documents/Github/GEOG331project/Book2CSV.csv")
-#names(demDat)[4]<-"fips"
-#demDat1<-subset(demDat, agegrp==0)
+demDat<-read.csv("/Users/benjaminmoffa/Documents/Github/GEOG331project/Book2CSV.csv")
+names(demDat)[4]<-"fips"
+demDat1<-subset(demDat, agegrp==0)
 
 #import air quality data and change names of population and cbsacode columns
 airDatO<-read.csv("/Users/benjaminmoffa/Documents/Github/GEOG331project/airdata1.csv", skip=2, na.strings = c("ND", "IN"))
@@ -53,7 +53,7 @@ for (n in 1:3244){
   }, error=function(e){})
 }
 
-#names(mDat1)[24]<-"inout"
+names(mDat1)[24]<-"inout"
 #rename columns for merge
 names(mDat1)[25]<-"fips1"
 
@@ -75,6 +75,10 @@ names(cDat)[13]<-"Sulfer"
 #calculate deaths per case
 cDat$dperc<-0
 cDat$dperc<-(cDat$deaths/cDat$cases)
+
+#merge county demographic data and calculate racial statistics
+totalDat<-merge(cDat,demDat1, by="fips")
+totalDat$logpop<-log(totalDat$population)
 
 
 #summary stats
@@ -138,18 +142,38 @@ ggplot(aes(x=Sulfer,y=dperc),data=cDat)+
   geom_point()+
   geom_smooth(method=lm)
 
+
+ggplot(aes(x=logpop,y=Ozone),data=totalDat)+
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(aes(x=logpop,y=nitrogen_mean),data=totalDat)+
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(aes(x=logpop,y=PM2.5_annualmean),data=totalDat)+
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(aes(x=logpop,y=Sulfer),data=totalDat)+
+  geom_point()+
+  geom_smooth(method=lm)
+ggplot(aes(x=logpop,y=dperc),data=totalDat)+
+  geom_point()+
+  geom_smooth(method=lm)
+
 #Regressions
 
-lmozone = lm(dperc~Ozone+inout, data = cDat)
+lmozone = lm(dperc~inout, data = totalDat)
 summary(lmozone)
 
-lmnitrogen = lm(dperc~nitrogen_mean+inout, data = cDat)
+lmozone = lm(dperc~Ozone+logpop, data = totalDat)
+summary(lmozone)
+
+lmnitrogen = lm(dperc~nitrogen_mean+logpop, data = totalDat)
 summary(lmnitrogen)
 
-lmPM_2.5 = lm(dperc~PM2.5_annualmean+inout, data = cDat)
+lmPM_2.5 = lm(dperc~PM2.5_annualmean+logpop, data = totalDat)
 summary(lmPM_2.5)
 
-lmsulfer = lm(dperc~Sulfer+inout, data = cDat)
+lmsulfer = lm(dperc~Sulfer+logpop, data = totalDat)
 summary(lmsulfer)
 
 
