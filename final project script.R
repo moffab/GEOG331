@@ -64,6 +64,7 @@ cDat$dperc<-(cDat$deaths/cDat$cases)
 cDat$logpop<-log(cDat$X2010.Population)
 
 #create summary statistics 
+#sum stats code partially sourced from https://learnr4ds.com/html/tables-in-r.html
 sumstat <- cDat %>%
   select(
     `Death Per Case` = dperc,
